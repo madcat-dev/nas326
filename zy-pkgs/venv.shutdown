@@ -1,0 +1,17 @@
+#!/bin/sh
+
+VENV="/i-data/.system/.venv"
+
+cd $VENV/../zy-pkgs
+
+# Stoping additional services from init.d directory
+for service in `ls -r init.d`
+do
+    if [ -x init.d/$service ]; then
+        echo "Stoping $service service"
+        init.d/$service stop  >> /tmp/services.log 2>&1
+    fi
+done
+
+echo "Virtual environment shutdown complete!"
+exit 0

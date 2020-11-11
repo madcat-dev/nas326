@@ -1,0 +1,47 @@
+#!/bin/sh
+
+VENV="/i-data/.system/.venv"
+
+cd $VENV/../zy-pkgs
+
+# Create virtual environment directory
+if [ -d $VENV ]; then
+    echo "Virtual environment in '$VENV' already created"
+else
+    echo "Create '$VENV' virtual environment"
+    mkdir -p $VENV
+fi
+
+# Mapping virtual environment to local /opt directory
+if [ -d /opt ]; then
+    echo 'Warning: Folder /opt exists!'
+else
+    mkdir -p /opt
+fi
+
+mount --bind $VENV /opt
+
+# Mapping additional directories from virtual environment
+for folder in root home
+do
+    if [ -d /opt/$folder ]; then
+        echo "Warning: Directory /opt/$folder exists!"
+        echo "Warning: If something goes wrong please clean /opt/$folder and try again."
+    else
+        mkdir -p /opt/$folder
+    fi
+
+    mount --bind /opt/$folder /$folder
+done
+
+# Start additional services from init.d directory
+for service in `ls init.d`
+do
+    if [ -x init.d/$service ]; then
+        echo "Start $service service"
+        init.d/$service start >> /tmp/services.log 2>&1
+    fi
+done
+
+echo "Virtual environment initialise complete!"
+exit 0

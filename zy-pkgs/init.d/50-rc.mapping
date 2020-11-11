@@ -1,0 +1,62 @@
+#!/bin/sh
+
+ALT_LIST='
+    /opt/bin/git*
+'
+
+STATUS_FLAG="/tmp/.rc.map-8ue3YSa=="
+
+UpdateAlternative() {
+    for file in $1
+    do
+        if [ -x $file ]; then
+            name=$(basename $file)
+            echo "- Prepare alternative: '$file' with '/bin/$name'"
+
+            if [ -x /bin/$name ]; then
+                echo "- Warning: alternative /bin/$name exist"
+                rm -f /bin/$name >/dev/null 2>&1
+            fi
+
+            ln -s $file /bin/$name
+        else
+            echo "- Warning: alternative '$file' not found"
+        fi
+    done
+}
+
+
+case "$1" in
+start)
+    touch $STATUS_FLAG
+
+    for list in $ALT_LIST
+    do
+        echo "Update alternative from '$list' pattern"
+        UpdateAlternative $list
+    done
+
+    echo ""
+    echo "Update alternatives complete"
+    ;;
+stop)
+    rm -f $STATUS_FLAG
+    echo "Stopping $0 service"
+    ;;
+status)
+    if [ -f $STATUS_FLAG ]; then
+        echo "Service status - active"
+    else
+        echo "Service status - inactive"
+    fi
+    ;;
+restart)
+    $0 stop
+    $0 start
+    ;;
+*)
+    echo "Usage $0 {start|stop|status|restart}"
+    ;;
+esac
+
+exit 0
